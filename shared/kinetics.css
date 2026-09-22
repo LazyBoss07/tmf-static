@@ -1,0 +1,405 @@
+/* ══════════════════════════════════════════════════════════
+   TrackMyFund — Kinetics Integration
+   Spring-physics micro-interactions from kinetics.colorion.co
+   CDN: https://cdn.jsdelivr.net/gh/ckissi/kinetics@main/public/css/
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Spring / Glide Motion Variables ─────────────────── */
+:root {
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --glide:  cubic-bezier(0.16, 1, 0.3, 1);
+  --snap:   cubic-bezier(0.65, 0, 0.35, 1);
+  --overshoot: cubic-bezier(0.18, 1.25, 0.4, 1);
+}
+
+/* ══════════════════════════════════════════════════════════
+   BUTTONS — Squish, Push, Magnetic, Ripple (all opt-in)
+   ══════════════════════════════════════════════════════════ */
+
+/* Squish: fast compress on press, bouncy spring release.
+   Opt-in — add .btn-spring to any button. Complements (does not
+   replace) TMF's .btn transition by only animating transform. */
+.btn-spring {
+  transition:
+    transform 0.08s ease-out,
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+.btn-spring:active {
+  transform: scale(0.92);
+}
+
+/* Push Button — tactile 3D depress */
+.btn-push {
+  box-shadow: 0 6px 0 rgba(0, 0, 0, 0.35);
+  transition: transform 0.06s ease, box-shadow 0.06s ease;
+}
+.btn-push:active {
+  transform: translateY(5px);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+}
+
+/* Hover lift for cards and buttons */
+.hover-lift {
+  transition: transform 0.5s var(--spring), box-shadow 0.5s var(--spring);
+}
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 32px -10px rgba(0, 0, 0, 0.2);
+}
+
+/* Magnetic zone — JS animates the inner element */
+.magnet-zone { display: inline-flex; align-items: center; justify-content: center; }
+.magnet-btn  { transition: transform 0.15s ease-out; will-change: transform; }
+
+/* Ripple surface */
+.ripple-surface { position: relative; overflow: hidden; }
+.k-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(0);
+  pointer-events: none;
+  animation: k-ripple-out 0.6s ease-out forwards;
+}
+@keyframes k-ripple-out { to { transform: scale(2.6); opacity: 0; } }
+
+/* ══════════════════════════════════════════════════════════
+   CARDS — Spring resize, Tilt, Hover lift
+   ══════════════════════════════════════════════════════════ */
+
+.card-spring {
+  transition: transform 0.5s var(--spring), box-shadow 0.5s var(--spring), border-color 0.3s ease;
+}
+.card-spring:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 40px -14px rgba(0, 0, 0, 0.18);
+}
+
+/* Tilt zone — pair with kinetics.js tilt helper */
+.tilt-zone { perspective: 800px; }
+.tilt-card  { transform-style: preserve-3d; transition: transform 0.15s ease-out; will-change: transform; }
+
+/* ══════════════════════════════════════════════════════════
+   NAVIGATION — Tab Pill Glide, Accordion, Dropdown
+   ══════════════════════════════════════════════════════════ */
+
+.k-tab-pill {
+  position: absolute;
+  border-radius: 100px;
+  transition: left 0.4s var(--snap), width 0.4s var(--snap);
+}
+
+/* Accordion — toggle .open on .k-accordion-item */
+.k-accordion-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.45s var(--glide);
+}
+.k-accordion-item.open .k-accordion-body { max-height: 400px; }
+.k-accordion-chev { transition: transform 0.35s var(--spring); }
+.k-accordion-item.open .k-accordion-chev { transform: rotate(180deg); }
+
+/* Dropdown panel — toggle .open on .k-dropdown */
+.k-dropdown-menu {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px) scale(0.98);
+  transform-origin: top right;
+  transition:
+    opacity 0.22s var(--glide),
+    transform 0.3s var(--spring),
+    visibility 0.22s;
+}
+.k-dropdown.open .k-dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+
+/* ══════════════════════════════════════════════════════════
+   TOASTS & NOTIFICATIONS — Overshoot slide-in
+   ══════════════════════════════════════════════════════════ */
+
+.k-toast {
+  transform: translate(-50%, 140%) scale(0.9);
+  opacity: 0;
+  transition: transform 0.55s var(--overshoot), opacity 0.3s ease;
+}
+.k-toast.show { transform: translate(-50%, 0) scale(1); opacity: 1; }
+
+.k-notify {
+  transform: translate(-50%, -160%);
+  opacity: 0;
+  transition: transform 0.55s var(--overshoot), opacity 0.3s ease;
+}
+.k-notify.show { transform: translate(-50%, 0); opacity: 1; }
+
+.k-snackbar { transform: translateY(140%); transition: transform 0.4s var(--spring); }
+.k-snackbar.show { transform: translateY(0); }
+
+/* ══════════════════════════════════════════════════════════
+   MODALS — Spring entrance / exit
+   ══════════════════════════════════════════════════════════ */
+
+.k-modal-dialog {
+  transform: translateY(14px) scale(0.97);
+  opacity: 0;
+  transition: transform 0.32s var(--spring), opacity 0.25s ease;
+}
+.k-modal.open .k-modal-dialog { transform: translateY(0) scale(1); opacity: 1; }
+.k-modal-backdrop { opacity: 0; transition: opacity 0.25s ease; }
+.k-modal.open .k-modal-backdrop { opacity: 1; }
+
+/* ══════════════════════════════════════════════════════════
+   FORM ELEMENTS — Toggle, Floating label, Chip, Value bump
+   ══════════════════════════════════════════════════════════ */
+
+.k-switch-knob {
+  transition: transform 0.4s var(--spring), background 0.3s ease;
+}
+.k-switch.on .k-switch-knob { transform: translateX(24px); }
+
+.k-field label {
+  transition: transform 0.2s var(--glide), color 0.2s ease, font-size 0.2s ease;
+}
+.k-field input:focus + label,
+.k-field input:not(:placeholder-shown) + label {
+  transform: translateY(-22px) scale(0.82);
+}
+
+.k-chip {
+  transition:
+    transform 0.3s var(--spring),
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+.k-chip.pop { transform: scale(1.12); }
+
+/* Number / value bump on change */
+.k-val { display: inline-block; transition: transform 0.35s var(--spring); }
+.k-val.bump { transform: scale(1.3); }
+
+/* Copy button crossfade */
+.k-copy-icon svg {
+  transition: opacity 0.2s ease, transform 0.3s var(--spring);
+}
+.k-copy-icon .ic-check { opacity: 0; transform: scale(0.5); }
+.k-copy-btn.copied .ic-copy { opacity: 0; transform: scale(0.5); }
+.k-copy-btn.copied .ic-check { opacity: 1; transform: scale(1); }
+
+/* ══════════════════════════════════════════════════════════
+   FEEDBACK — Pulse badge, Progress, Spinner, Skeleton, Typing
+   ══════════════════════════════════════════════════════════ */
+
+.k-pulse-badge { position: relative; }
+.k-pulse-badge::before,
+.k-pulse-badge::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  animation: k-pulse-ring 1.8s ease-out infinite;
+}
+.k-pulse-badge::after { animation-delay: 0.9s; }
+@keyframes k-pulse-ring {
+  0%   { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(2.4); opacity: 0; }
+}
+
+.k-progress-fill { transition: width 0.9s var(--glide); }
+.k-ring-prog { transition: stroke-dashoffset 0.9s var(--glide); }
+
+.k-skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-sunken, #ededee) 25%,
+    rgba(255,255,255,0.6) 50%,
+    var(--bg-sunken, #ededee) 75%
+  );
+  background-size: 200% 100%;
+  animation: k-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes k-shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.k-typing span {
+  animation: k-typing-bounce 1.2s ease-in-out infinite;
+}
+.k-typing span:nth-child(2) { animation-delay: 0.16s; }
+.k-typing span:nth-child(3) { animation-delay: 0.32s; }
+@keyframes k-typing-bounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30%            { transform: translateY(-7px); opacity: 1; }
+}
+
+/* Submit states — .loading → dots, .done → check */
+.k-submit-dots, .k-submit-check { opacity: 0; transition: opacity 0.25s ease; }
+.k-submit-btn.loading .k-submit-label,
+.k-submit-btn.done   .k-submit-label { opacity: 0; }
+.k-submit-btn.loading .k-submit-dots { opacity: 1; }
+.k-submit-btn.done   .k-submit-check { opacity: 1; }
+
+/* ══════════════════════════════════════════════════════════
+   SURFACE & MOTION — Shine, Aurora, Blob, Float, Breathe
+   ══════════════════════════════════════════════════════════ */
+
+.k-shine { position: relative; overflow: hidden; }
+.k-shine::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -120%;
+  width: 60%; height: 100%;
+  transform: skewX(-20deg);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+}
+.k-shine:hover::before { left: 120%; transition: left 0.9s var(--snap); }
+
+.k-beam { position: relative; border-radius: inherit; padding: 1.5px; overflow: hidden; }
+.k-beam::before {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 200%; height: 200%;
+  transform: translate(-50%, -50%);
+  background: conic-gradient(from 0deg, transparent 0 72%, var(--secondary,#ff5a24) 84%, white 90%, transparent 96% 100%);
+  animation: k-beam-spin 3s linear infinite;
+}
+.k-beam-inner { position: relative; z-index: 1; }
+@keyframes k-beam-spin { to { transform: translate(-50%, -50%) rotate(1turn); } }
+
+.k-aurora { position: relative; overflow: hidden; }
+.k-aurora::before {
+  content: '';
+  position: absolute;
+  inset: -40%;
+  background:
+    radial-gradient(40% 50% at 30% 38%, rgba(255,90,36,0.18), transparent 60%),
+    radial-gradient(45% 55% at 72% 62%, rgba(22,163,74,0.14), transparent 60%);
+  filter: blur(18px);
+  animation: k-aurora-drift 12s ease-in-out infinite alternate;
+  pointer-events: none; z-index: 0;
+}
+@keyframes k-aurora-drift {
+  0%   { transform: translate(-6%, -4%) rotate(0deg) scale(1.1); }
+  100% { transform: translate(6%, 4%) rotate(8deg) scale(1.3); }
+}
+
+.k-blob { border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%; animation: k-blob-morph 8s ease-in-out infinite; }
+@keyframes k-blob-morph {
+  0%, 100% { border-radius: 42% 58% 70% 30% / 45% 45% 55% 55%; }
+  33%       { border-radius: 70% 30% 46% 54% / 30% 60% 40% 70%; }
+  66%       { border-radius: 34% 66% 60% 40% / 65% 35% 65% 35%; }
+}
+
+.k-float { animation: k-float-bob 4s ease-in-out infinite; }
+@keyframes k-float-bob {
+  0%, 100% { transform: translateY(0);     box-shadow: 0 10px 20px -8px rgba(0,0,0,0.15); }
+  50%       { transform: translateY(-10px); box-shadow: 0 22px 30px -10px rgba(0,0,0,0.1); }
+}
+
+.k-breathe { animation: k-breathe 5s ease-in-out infinite; }
+@keyframes k-breathe {
+  0%, 100% { transform: scale(0.9);  box-shadow: 0 0 20px 0  rgba(255,90,36,0.25); }
+  50%       { transform: scale(1.08); box-shadow: 0 0 48px 8px rgba(255,90,36,0.4); }
+}
+
+/* ══════════════════════════════════════════════════════════
+   TEXT — Shimmer text, Neon, Split reveal, Wipe
+   ══════════════════════════════════════════════════════════ */
+
+.k-shimmer-text {
+  background: linear-gradient(100deg, var(--text-tertiary,#71717a) 30%, var(--secondary,#ff5a24) 50%, var(--text-tertiary,#71717a) 70%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: k-text-shimmer 3s linear infinite;
+}
+@keyframes k-text-shimmer { to { background-position: -200% center; } }
+
+.k-neon { animation: k-neon-pulse 2s ease-in-out infinite; }
+@keyframes k-neon-pulse {
+  0%, 100% { text-shadow: 0 0 4px currentColor; box-shadow: 0 0 6px -1px currentColor, inset 0 0 6px -2px currentColor; }
+  50%       { text-shadow: 0 0 12px currentColor, 0 0 22px currentColor; box-shadow: 0 0 18px 0 currentColor, inset 0 0 12px -2px currentColor; }
+}
+
+.k-split { display: flex; overflow: hidden; }
+.k-split span { display: inline-block; transform: translateY(110%); transition: transform 0.5s var(--spring); }
+.k-split.in span { transform: translateY(0); }
+.k-split span:nth-child(1) { transition-delay:   0ms; }
+.k-split span:nth-child(2) { transition-delay:  40ms; }
+.k-split span:nth-child(3) { transition-delay:  80ms; }
+.k-split span:nth-child(4) { transition-delay: 120ms; }
+.k-split span:nth-child(5) { transition-delay: 160ms; }
+.k-split span:nth-child(6) { transition-delay: 200ms; }
+
+.k-wipe { position: relative; overflow: hidden; }
+.k-wipe-over { position: absolute; inset: 0; clip-path: inset(0 100% 0 0); transition: clip-path 0.5s var(--glide); }
+.k-wipe:hover .k-wipe-over { clip-path: inset(0 0 0 0); }
+
+/* Liquid glass */
+.k-glass {
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.18);
+  transition: transform 0.35s var(--spring), box-shadow 0.35s ease;
+}
+.k-glass:active { transform: scale(0.97); }
+
+/* ══════════════════════════════════════════════════════════
+   DRAG & GESTURE
+   ══════════════════════════════════════════════════════════ */
+
+.k-swipe-item { transition: transform 0.4s var(--spring); will-change: transform; touch-action: none; cursor: grab; }
+.k-swipe-item.dragging { cursor: grabbing; transition: none; }
+.k-swipe-item.open { transform: translateX(-96px); }
+
+.k-drag-card { transition: transform 0.5s var(--spring), opacity 0.4s ease; cursor: grab; touch-action: none; user-select: none; will-change: transform; }
+.k-drag-card.dragging { cursor: grabbing; transition: none; }
+
+/* ══════════════════════════════════════════════════════════
+   STAGGER LIST ENTRANCE
+   ══════════════════════════════════════════════════════════ */
+
+.k-stagger > * { opacity: 0; transform: translateY(14px); transition: opacity 0.45s var(--glide), transform 0.45s var(--glide); }
+.k-stagger.in > * { opacity: 1; transform: translateY(0); }
+.k-stagger > *:nth-child(1) { transition-delay:   0ms; }
+.k-stagger > *:nth-child(2) { transition-delay:  60ms; }
+.k-stagger > *:nth-child(3) { transition-delay: 120ms; }
+.k-stagger > *:nth-child(4) { transition-delay: 180ms; }
+.k-stagger > *:nth-child(5) { transition-delay: 240ms; }
+.k-stagger > *:nth-child(6) { transition-delay: 300ms; }
+.k-stagger > *:nth-child(7) { transition-delay: 360ms; }
+.k-stagger > *:nth-child(8) { transition-delay: 420ms; }
+
+/* ══════════════════════════════════════════════════════════
+   STEP PROGRESS, STARS, MISC
+   ══════════════════════════════════════════════════════════ */
+
+.k-step-node { transition: transform 0.4s var(--spring), background 0.3s ease, border-color 0.3s ease; }
+.k-step-node.active { transform: scale(1.18); }
+.k-steps-track-fill { transform: scaleX(0); transform-origin: left; transition: transform 0.5s var(--spring); }
+
+.k-star { display: inline-block; transition: transform 0.25s var(--spring), color 0.15s ease; }
+.k-star.pop { transform: scale(1.3); }
+
+/* ══════════════════════════════════════════════════════════
+   REDUCED MOTION — Always last
+   ══════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+

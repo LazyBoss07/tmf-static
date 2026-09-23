@@ -1,0 +1,2410 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   TrackMyFund — coss.com/ui Full Rebuild
+   Design source: https://github.com/cosscom/coss  (Cal.com Design System)
+   
+   This is a complete, production-quality vanilla CSS implementation of
+   coss.com/ui's visual language: tokens, components, effects, animations,
+   layout primitives — everything needed to build a polished finance dashboard
+   without React or a bundler.
+
+   Load order: after styles.css, before animations.css
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 0 — SUPPLEMENTAL TOKENS
+   Extra design tokens that extend styles.css to match coss.com/ui exactly
+   ════════════════════════════════════════════════════════════════════════════ */
+:root {
+  /* coss exact sizes */
+  --coss-btn-h:       2.25rem;   /* 36px — default button height */
+  --coss-btn-h-sm:    1.875rem;  /* 30px */
+  --coss-btn-h-lg:    2.75rem;   /* 44px */
+  --coss-input-h:     2.375rem;  /* 38px */
+  --coss-input-h-sm:  1.875rem;
+  --coss-input-h-lg:  3rem;
+
+  /* Card surfaces */
+  --coss-card-bg:       var(--bg-surface);
+  --coss-card-border:   var(--border);
+  --coss-popover-bg:    var(--glass-bg-heavy);
+  --coss-dialog-bg:     var(--glass-bg-heavy);
+
+  /* Focus ring — 2px ring + 2px gap (a11y standard) */
+  --coss-ring:   0 0 0 2px var(--bg-base), 0 0 0 4px var(--primary);
+  --coss-ring-error: 0 0 0 2px var(--bg-base), 0 0 0 4px rgba(var(--rose-rgb), 0.5);
+
+  /* Badge */
+  --coss-badge-px: 0.4375rem;
+  --coss-badge-py: 0.1875rem;
+  --coss-badge-r:  0.375rem;
+
+  /* Meter */
+  --coss-meter-track: var(--bg-sunken);
+
+  /* Separator */
+  --coss-sep: var(--divider);
+
+  /* Shimmer gradient */
+  --coss-shimmer-from: var(--surface-muted);
+  --coss-shimmer-mid:  rgba(var(--primary-rgb), 0.055);
+  --coss-shimmer-to:   var(--surface-muted);
+
+  /* Sidebar widths (extended) */
+  --sidebar-width: 240px;
+  --sidebar-collapsed: 68px;
+}
+
+.dark {
+  --coss-card-bg:     var(--bg-surface);
+  --coss-card-border: var(--border);
+  --coss-popover-bg:  rgba(12, 12, 12, 0.97);
+  --coss-dialog-bg:   rgba(14, 14, 14, 0.97);
+  --coss-ring: 0 0 0 2px var(--bg-base), 0 0 0 4px rgba(255,255,255,0.5);
+  --coss-shimmer-from: rgba(255,255,255,0.04);
+  --coss-shimmer-mid:  rgba(255,255,255,0.09);
+  --coss-shimmer-to:   rgba(255,255,255,0.04);
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 1 — GLOBAL RESET ADDITIONS & A11Y
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* coss-style focus ring on every interactive element */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--coss-ring);
+  border-radius: var(--radius-md);
+}
+
+/* Reduce motion — respect prefers-reduced-motion for all transitions */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Skip-to-content link */
+.coss-skip-link {
+  position: absolute;
+  top: -9999px;
+  left: 0;
+  padding: 0.5rem 1rem;
+  background: var(--primary);
+  color: var(--text-inverse);
+  border-radius: 0 0 var(--radius-md) 0;
+  font-weight: 600;
+  z-index: 9999;
+  text-decoration: none;
+}
+.coss-skip-link:focus { top: 0; }
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 2 — BUTTONS (full coss.com/ui spec)
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* Base overrides — match coss exact sizing, gaps, and no uppercase */
+.btn {
+  min-height: var(--coss-btn-h);
+  padding: 0 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  gap: 0.375rem;
+  border-radius: var(--radius-md);
+  text-transform: none;
+  user-select: none;
+}
+
+.btn-sm {
+  min-height: var(--coss-btn-h-sm);
+  padding: 0 0.625rem;
+  font-size: 0.8125rem;
+  gap: 0.25rem;
+  border-radius: calc(var(--radius-md) - 0.0625rem);
+}
+
+.btn-lg {
+  min-height: var(--coss-btn-h-lg);
+  padding: 0 1.25rem;
+  font-size: 1rem;
+  gap: 0.5rem;
+}
+
+/* Icon buttons: perfectly square */
+.btn-icon         { width: var(--coss-btn-h);    min-width: var(--coss-btn-h);    height: var(--coss-btn-h);    padding: 0; }
+.btn-icon.btn-sm  { width: var(--coss-btn-h-sm); min-width: var(--coss-btn-h-sm); height: var(--coss-btn-h-sm); }
+.btn-icon.btn-lg  { width: var(--coss-btn-h-lg); min-width: var(--coss-btn-h-lg); height: var(--coss-btn-h-lg); }
+
+/* Outline — between ghost and primary */
+.btn-outline {
+  background: transparent;
+  color: var(--text-primary);
+  border-color: var(--border);
+}
+.btn-outline:hover:not(:disabled) {
+  background: var(--surface-muted);
+  border-color: rgba(var(--primary-rgb), 0.3);
+}
+
+/* Loading state on buttons */
+.btn-loading {
+  pointer-events: none;
+  opacity: 0.75;
+  position: relative;
+}
+.btn-loading::after {
+  content: '';
+  position: absolute;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(currentColor, 0.3);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: cossSpinnerSpin 0.7s linear infinite;
+}
+
+/* Destructive */
+.btn-destructive {
+  background: var(--rose);
+  color: #fff;
+  border-color: var(--rose);
+}
+.btn-destructive:hover:not(:disabled) {
+  background: var(--rose-light);
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 3 — CARD (coss.com/ui "Card" particles)
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* Base coss card — clean border, subtle shadow, no heavy blur */
+.coss-card {
+  background: var(--coss-card-bg);
+  border: 1px solid var(--coss-card-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xs);
+  transition: box-shadow var(--transition-fast), border-color var(--transition-fast);
+}
+
+.coss-card:hover {
+  box-shadow: var(--shadow-sm);
+  border-color: rgba(var(--primary-rgb), 0.18);
+}
+
+/* Card with top colored bar */
+.coss-card-accent         { border-top: 3px solid var(--primary); }
+.coss-card-accent.success { border-top-color: var(--accent); }
+.coss-card-accent.error   { border-top-color: var(--rose); }
+.coss-card-accent.warning { border-top-color: var(--amber); }
+.coss-card-accent.info    { border-top-color: var(--secondary); }
+
+/* Structural sub-components */
+.coss-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: var(--space-lg) var(--space-lg) 0;
+}
+
+.coss-card-title {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  line-height: 1.3;
+  font-family: var(--font-display);
+}
+
+.coss-card-description {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+  line-height: 1.5;
+}
+
+.coss-card-body   { padding: var(--space-lg); }
+.coss-card-footer {
+  padding: 0 var(--space-lg) var(--space-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+/* KPI card variant (replaces .kpi-card in pages) */
+.coss-kpi-card {
+  padding: 1.25rem 1.5rem;
+  position: relative;
+  overflow: hidden;
+  background: var(--coss-card-bg);
+  border: 1px solid var(--coss-card-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xs);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+}
+
+.coss-kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+  border-color: rgba(var(--primary-rgb), 0.2);
+}
+
+.coss-kpi-card::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  border-radius: 0 var(--radius-full) var(--radius-full) 0;
+  background: var(--primary);
+}
+
+.coss-kpi-card.kpi-success::before { background: var(--accent); }
+.coss-kpi-card.kpi-error::before   { background: var(--rose); }
+.coss-kpi-card.kpi-warning::before { background: var(--amber); }
+.coss-kpi-card.kpi-info::before    { background: var(--secondary); }
+
+.coss-kpi-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-tertiary);
+  margin-bottom: 0.3rem;
+}
+
+.coss-kpi-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.15;
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+.coss-kpi-change {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  margin-top: 0.375rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.coss-kpi-change.positive { color: var(--accent); }
+.coss-kpi-change.negative { color: var(--rose); }
+.coss-kpi-change.neutral  { color: var(--text-tertiary); }
+
+.coss-kpi-icon {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 1.5rem;
+  color: var(--text-tertiary);
+  opacity: 0.5;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 4 — BADGE (coss.com/ui "Badge")
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.coss-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: var(--coss-badge-py) var(--coss-badge-px);
+  border-radius: var(--coss-badge-r);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* Dot decorator */
+.coss-badge-dot::before {
+  content: '';
+  display: inline-block;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+/* Variants */
+.coss-badge-default  { background: var(--surface-muted);              color: var(--text-secondary); border-color: var(--border); }
+.coss-badge-primary  { background: var(--primary);                    color: var(--text-inverse);   border-color: var(--primary); }
+.coss-badge-success  { background: rgba(var(--accent-rgb),    0.1);   color: var(--accent);         border-color: rgba(var(--accent-rgb),    0.2); }
+.coss-badge-error    { background: rgba(var(--rose-rgb),      0.1);   color: var(--rose);           border-color: rgba(var(--rose-rgb),      0.2); }
+.coss-badge-warning  { background: rgba(var(--amber-rgb),     0.1);   color: var(--amber);          border-color: rgba(var(--amber-rgb),     0.2); }
+.coss-badge-info     { background: rgba(var(--secondary-rgb), 0.1);   color: var(--secondary);      border-color: rgba(var(--secondary-rgb), 0.2); }
+.coss-badge-outline  { background: transparent;                        color: var(--text-secondary); border-color: var(--border); }
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 5 — INPUTS & FORM FIELDS (coss.com/ui "Input" + "Field")
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* coss base input */
+.coss-input {
+  width: 100%;
+  height: var(--coss-input-h);
+  padding: 0 0.875rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: var(--text-primary);
+  background: var(--coss-card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: none;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-fast);
+}
+
+.coss-input::placeholder { color: var(--text-tertiary); }
+
+.coss-input:hover:not(:disabled) {
+  border-color: rgba(var(--primary-rgb), 0.4);
+}
+
+.coss-input:focus {
+  border-color: var(--primary);
+  box-shadow: var(--coss-ring);
+}
+
+.coss-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--surface-muted);
+}
+
+/* Size modifiers */
+.coss-input-sm { height: var(--coss-input-h-sm); padding: 0 0.625rem; font-size: 0.8125rem; }
+.coss-input-lg { height: var(--coss-input-h-lg); padding: 0 1rem;     font-size: 1rem; }
+
+/* Error state */
+.coss-input-error {
+  border-color: var(--rose) !important;
+}
+.coss-input-error:focus {
+  box-shadow: var(--coss-ring-error) !important;
+}
+
+/* Textarea */
+.coss-textarea {
+  width: 100%;
+  min-height: 5.5rem;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: var(--text-primary);
+  background: var(--coss-card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  outline: none;
+  resize: vertical;
+  line-height: 1.5;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.coss-textarea::placeholder { color: var(--text-tertiary); }
+.coss-textarea:focus { border-color: var(--primary); box-shadow: var(--coss-ring); }
+
+/* Select */
+.coss-select {
+  width: 100%;
+  height: var(--coss-input-h);
+  padding: 0 2.5rem 0 0.875rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: var(--text-primary);
+  background: var(--coss-card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  outline: none;
+  cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.coss-select:focus { border-color: var(--primary); box-shadow: var(--coss-ring); }
+.coss-select:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Input group — prefix/suffix icons */
+.coss-input-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.coss-input-prefix,
+.coss-input-suffix {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+.coss-input-prefix { left: 0.75rem; }
+.coss-input-suffix { right: 0.75rem; }
+.coss-input-suffix.clickable { pointer-events: auto; cursor: pointer; }
+
+.coss-input-has-prefix { padding-left: 2.5rem; }
+.coss-input-has-suffix { padding-right: 2.5rem; }
+
+/* Field layout — label + helper/error */
+.coss-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.coss-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+.coss-label.required::after {
+  content: ' *';
+  color: var(--rose);
+}
+
+.coss-helper {
+  font-size: 0.8125rem;
+  color: var(--text-tertiary);
+  line-height: 1.45;
+}
+
+.coss-field-error .coss-input,
+.coss-field-error .coss-select,
+.coss-field-error .coss-textarea {
+  border-color: var(--rose);
+}
+
+.coss-error-msg {
+  font-size: 0.8125rem;
+  color: var(--rose);
+  line-height: 1.45;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 6 — SKELETON (coss.com/ui "Skeleton")
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.coss-skeleton {
+  display: block;
+  border-radius: var(--radius-md);
+  background: linear-gradient(
+    90deg,
+    var(--coss-shimmer-from)  0%,
+    var(--coss-shimmer-mid)  50%,
+    var(--coss-shimmer-to)  100%
+  );
+  background-size: 200% 100%;
+  animation: cossShimmer 1.6s ease-in-out infinite;
+}
+
+@keyframes cossShimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Preset shapes */
+.coss-skeleton-text   { height: 0.875rem; border-radius: var(--radius-sm); margin-bottom: 0.375rem; }
+.coss-skeleton-title  { height: 1.25rem;  border-radius: var(--radius-sm); }
+.coss-skeleton-avatar { border-radius: 50%; }
+.coss-skeleton-badge  { height: 1.375rem; border-radius: var(--coss-badge-r); }
+.coss-skeleton-btn    { height: var(--coss-btn-h); border-radius: var(--radius-md); }
+.coss-skeleton-input  { height: var(--coss-input-h); border-radius: var(--radius-md); }
+.coss-skeleton-card   { height: 8rem;  border-radius: var(--radius-xl); }
+.coss-skeleton-chart  { height: 14rem; border-radius: var(--radius-xl); }
+.coss-skeleton-kpi    { height: 5rem;  border-radius: var(--radius-xl); }
+
+/* Skeleton group — multiple text lines */
+.coss-skeleton-group { display: flex; flex-direction: column; gap: 0.5rem; }
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 7 — EMPTY STATE (coss.com/ui "Empty")
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.coss-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 3rem 2rem;
+  gap: var(--space-md);
+}
+
+.coss-empty-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: var(--radius-xl);
+  background: var(--surface-muted);
+  border: 1px solid var(--border-light);
+  color: var(--text-tertiary);
+  font-size: 1.75rem;
+  flex-shrink: 0;
+}
+
+.coss-empty-title {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+}
+
+.coss-empty-description {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 26rem;
+}
+
+.coss-empty-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 8 — SPINNER (coss.com/ui "Spinner")
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.coss-spinner {
+  display: inline-block;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(var(--primary-rgb), 0.15);
+  border-top-color: var(--primary);
+  animation: cossSpinnerSpin 0.7s linear infinite;
+}
+
+@keyframes cossSpinnerSpin { to { transform: rotate(360deg); } }
+
+.coss-spinner-xs { width: 0.875rem; height: 0.875rem; border-width: 1.5px; }
+.coss-spinner-sm { width: 1.125rem; height: 1.125rem; border-width: 1.5px; }
+.coss-spinner    { width: 1.5rem;   height: 1.5rem;   border-width: 2px; }
+.coss-spinner-lg { width: 2.25rem;  height: 2.25rem;  border-width: 2.5px; }
+.coss-spinner-xl { width: 3rem;     height: 3rem;     border-width: 3px; }
+
+/* On dark button backgrounds */
+.coss-spinner-inverse {
+  border-color: rgba(255,255,255,0.25);
+  border-top-color: #fff;
+}
+
+/* Full page loader */
+.coss-page-loader {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: var(--bg-base);
+  z-index: 9999;
+}
+
+.coss-page-loader-text {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  animation: cossFadeIn 0.6s ease both;
+  animation-delay: 0.3s;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 9 — SEGMENTED CONTROL (coss.com/ui "Segmented Control")
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.coss-segmented {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.1875rem;
+  background: var(--surface-muted);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+}
+
+.coss-segmented-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3125rem;
+  padding: 0.375rem 0.875rem;
+  border-radius: calc(var(--radius-lg) - 0.125rem);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  line-height: 1;
+  text-decoration: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.coss-segmented-item:hover:not([aria-selected="true"]):not(.active) {
+  color: var(--text-primary);
+}
+
+.coss-segmented-item.active,
+.coss-segmented-item[aria-selected="true"],
+.coss-segmented-item[data-state="active"] {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border-color: var(--border);
+  box-shadow: var(--shadow-xs);
+}
+
+@media (max-width: 640px) {
+  .coss-segmented {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    max-width: 100%;
+    width: 100%;
+  }
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 10 — TOAST (coss.com/ui "Toast")
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.coss-toast-container {
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  z-index: 9900;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.5rem;
+  max-width: 22rem;
+  width: calc(100vw - 2.5rem);
+  pointer-events: none;
+}
+
+.coss-toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  background: var(--coss-popover-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  border-left: 3px solid var(--border);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  animation: cossToastIn 0.3s var(--ease-spring) both;
+}
+
+@keyframes cossToastIn {
+  from { opacity: 0; transform: translateX(100%) scale(0.95); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes cossToastOut {
+  from { opacity: 1; transform: translateX(0); max-height: 8rem; margin-bottom: 0.5rem; }
+  to   { opacity: 0; transform: translateX(100%); max-height: 0;   margin-bottom: 0; }
+}
+
+.coss-toast.dismissing {
+  animation: cossToastOut 0.25s ease-in forwards;
+  overflow: hidden;
+}
+
+/* Semantic variants */
+.coss-toast-success { border-left-color: var(--accent); }
+.coss-toast-error   { border-left-color: var(--rose); }
+.coss-toast-warning { border-left-color: var(--amber); }
+.coss-toast-info    { border-left-color: var(--secondary); }
+
+.coss-toast-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  font-size: 1.125rem;
+  margin-top: 1px;
+}
+
+.coss-toast-success .coss-toast-icon { color: var(--accent); }
+.coss-toast-error   .coss-toast-icon { color: var(--rose); }
+.coss-toast-warning .coss-toast-icon { color: var(--amber); }
+.coss-toast-info    .coss-toast-icon { color: var(--secondary); }
+
+.coss-toast-body  { flex: 1; min-width: 0; }
+.coss-toast-title { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); line-height: 1.4; }
+.coss-toast-desc  { font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.125rem; line-height: 1.5; }
+
+.coss-toast-close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast), background var(--transition-fast);
+  margin-top: 2px;
+  font-size: 1rem;
+  line-height: 1;
+}
+.coss-toast-close:hover { color: var(--text-primary); background: rgba(var(--primary-rgb), 0.06); }
+
+/* Mobile: stack above bottom nav */
+@media (max-width: 480px) {
+  .coss-toast-container {
+    right: 0.75rem;
+    left: 0.75rem;
+    bottom: calc(var(--bottom-nav-height, 64px) + 0.75rem);
+    max-width: 100%;
+    width: auto;
+  }
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 11 — TABLE (coss.com/ui "Table")
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.coss-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--coss-card-bg);
+}
+
+.coss-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.875rem;
+  text-align: left;
+  min-width: 36rem;
+}
+
+.coss-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface-muted);
+}
+
+.coss-table th {
+  padding: 0.6875rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.coss-table th.sortable {
+  cursor: pointer;
+  user-select: none;
+  gap: 0.25rem;
+  display: table-cell;
+}
+.coss-table th.sortable:hover { color: var(--text-primary); }
+.coss-table th.sorted { color: var(--text-primary); }
+
+.coss-table td {
+  padding: 0.875rem 1rem;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-light);
+  vertical-align: middle;
+}
+
+.coss-table tbody tr {
+  transition: background var(--transition-fast);
+}
+.coss-table tbody tr:hover {
+  background: rgba(var(--primary-rgb), 0.025);
+}
+.dark .coss-table tbody tr:hover {
+  background: rgba(255,255,255,0.035);
+}
+.coss-table tbody tr:last-child td { border-bottom: none; }
+
+/* Column modifiers */
+.coss-table td.numeric,
+.coss-table th.numeric {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.coss-table td.mono {
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: 0.8125rem;
+}
+
+/* Row accent bar (expense / income coloring) */
+.coss-table tr.row-income td:first-child { border-left: 3px solid var(--accent); }
+.coss-table tr.row-expense td:first-child { border-left: 3px solid var(--rose); }
+.coss-table tr.row-payment td:first-child { border-left: 3px solid var(--secondary); }
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 12 — SEPARATOR (coss.com/ui "Separator")
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.coss-separator {
+  display: block;
+  height: 1px;
+  width: 100%;
+  background: var(--coss-sep);
+  border: none;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.coss-separator-vertical {
+  display: inline-block;
+  width: 1px;
+  height: 1.25em;
+  background: var(--coss-sep);
+  vertical-align: middle;
+  margin: 0 0.375rem;
+  flex-shrink: 0;
+}
+
+/* "OR" divider */
+.coss-separator-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--text-tertiary);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+.coss-separator-label::before,
+.coss-separator-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--coss-sep);
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 13 — TOOLBAR (coss.com/ui "Toolbar")
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.coss-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+  padding: 0.25rem;
+  background: var(--surface-muted);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  flex-wrap: wrap;
+}
+
+.coss-toolbar .coss-separator-vertical {
+  height: 1.5rem;
+  margin: 0 0.125rem;
+  opacity: 0.6;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 14 — METER / PROGRESS (coss.com/ui "Meter")
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.coss-meter {
+  width: 100%;
+  height: 0.375rem;
+  background: var(--coss-meter-track);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  position: relative;
+}
+
+.coss-meter-md { height: 0.5rem; }
+.coss-meter-lg { height: 0.75rem; }
+
+.coss-meter-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--primary);
+  transition: width 0.5s var(--ease-smooth);
+}
+
+/* Semantic variants */
+.coss-meter-success .coss-meter-fill { background: var(--accent); }
+.coss-meter-warning .coss-meter-fill { background: var(--amber); }
+.coss-meter-error   .coss-meter-fill { background: var(--rose); }
+.coss-meter-info    .coss-meter-fill { background: var(--secondary); }
+
+/* Gradient fill */
+.coss-meter-gradient .coss-meter-fill {
+  background: linear-gradient(90deg, var(--accent), var(--secondary));
+}
+
+/* Indeterminate */
+.coss-meter-indeterminate .coss-meter-fill {
+  width: 40% !important;
+  animation: cossIndeterminate 1.4s ease-in-out infinite;
+}
+@keyframes cossIndeterminate {
+  0%   { transform: translateX(-160%); }
+  100% { transform: translateX(400%); }
+}
+
+/* Striped */
+.coss-meter-striped .coss-meter-fill {
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(255,255,255,0.15) 0,
+    rgba(255,255,255,0.15) 4px,
+    transparent 4px,
+    transparent 8px
+  );
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 15 — KBD (coss.com/ui "Kbd")
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.coss-kbd {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.4375rem;
+  font-size: 0.75rem;
+  font-family: inherit;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: 0.3125rem;
+  box-shadow: 0 1px 0 var(--border);
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 16 — AVATAR (coss.com/ui "Avatar")
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.coss-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  background: var(--primary);
+  color: var(--text-inverse);
+  font-weight: 700;
+  line-height: 1;
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+/* Sizes */
+.coss-avatar-xs { width: 1.5rem;  height: 1.5rem;  font-size: 0.625rem;  border-radius: 0.25rem; }
+.coss-avatar-sm { width: 2rem;    height: 2rem;    font-size: 0.75rem;   border-radius: 0.3125rem; }
+.coss-avatar    { width: 2.5rem;  height: 2.5rem;  font-size: 0.9375rem; border-radius: var(--radius-md); }
+.coss-avatar-lg { width: 3rem;    height: 3rem;    font-size: 1.125rem;  border-radius: 0.5rem; }
+.coss-avatar-xl { width: 4rem;    height: 4rem;    font-size: 1.5rem;    border-radius: 0.75rem; }
+
+.coss-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
+
+/* Stacked avatars */
+.coss-avatar-stack {
+  display: flex;
+  align-items: center;
+}
+.coss-avatar-stack .coss-avatar {
+  margin-left: -0.5rem;
+  border: 2px solid var(--bg-base);
+}
+.coss-avatar-stack .coss-avatar:first-child { margin-left: 0; }
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 17 — POPOVER / DROPDOWN MENU (coss.com/ui "Popover" + "Menu")
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.coss-popover {
+  position: absolute;
+  z-index: 300;
+  min-width: 12rem;
+  background: var(--coss-popover-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  padding: 0.3125rem;
+  animation: cossPopIn 0.18s var(--ease-spring) both;
+}
+
+@keyframes cossPopIn {
+  from { opacity: 0; transform: scale(0.95) translateY(-6px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+
+.coss-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: calc(var(--radius-lg) - 0.25rem);
+  font-size: 0.875rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  text-decoration: none;
+  line-height: 1.45;
+  font-family: inherit;
+}
+
+.coss-menu-item:hover { background: rgba(var(--primary-rgb), 0.06); }
+.dark .coss-menu-item:hover { background: rgba(255,255,255,0.07); }
+
+.coss-menu-item.destructive { color: var(--rose); }
+.coss-menu-item.destructive:hover { background: rgba(var(--rose-rgb), 0.08); }
+
+.coss-menu-item.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.coss-menu-icon {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  display: flex;
+  align-items: center;
+  font-size: 1rem;
+  color: var(--text-tertiary);
+}
+.coss-menu-item:hover .coss-menu-icon { color: inherit; }
+.coss-menu-item.destructive .coss-menu-icon { color: var(--rose); }
+
+.coss-menu-separator { height: 1px; background: var(--border); margin: 0.3125rem 0; }
+
+.coss-menu-label {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+/* Keyboard shortcut in menu */
+.coss-menu-shortcut {
+  margin-left: auto;
+  font-size: 0.6875rem;
+  color: var(--text-tertiary);
+  font-family: inherit;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 18 — ALERT (coss.com/ui "Alert")
+   Non-dismissible inline callout (vs. dismissible Toast)
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.coss-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-muted);
+}
+
+.coss-alert-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  font-size: 1.125rem;
+  margin-top: 1px;
+  color: var(--text-tertiary);
+}
+
+.coss-alert-body  { flex: 1; min-width: 0; }
+.coss-alert-title { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); line-height: 1.4; }
+.coss-alert-desc  { font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.25rem; line-height: 1.5; }
+
+/* Semantic */
+.coss-alert-success { background: rgba(var(--accent-rgb),    0.07); border-color: rgba(var(--accent-rgb),    0.2); }
+.coss-alert-error   { background: rgba(var(--rose-rgb),      0.07); border-color: rgba(var(--rose-rgb),      0.2); }
+.coss-alert-warning { background: rgba(var(--amber-rgb),     0.07); border-color: rgba(var(--amber-rgb),     0.2); }
+.coss-alert-info    { background: rgba(var(--secondary-rgb), 0.07); border-color: rgba(var(--secondary-rgb), 0.2); }
+
+.coss-alert-success .coss-alert-icon { color: var(--accent); }
+.coss-alert-error   .coss-alert-icon { color: var(--rose); }
+.coss-alert-warning .coss-alert-icon { color: var(--amber); }
+.coss-alert-info    .coss-alert-icon { color: var(--secondary); }
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 19 — BREADCRUMB (coss.com/ui "Breadcrumb")
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.coss-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  font-size: 0.875rem;
+}
+
+.coss-breadcrumb-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+.coss-breadcrumb-item:hover { color: var(--text-primary); }
+.coss-breadcrumb-item.active { color: var(--text-primary); font-weight: 500; pointer-events: none; }
+
+.coss-breadcrumb-sep { color: var(--text-tertiary); line-height: 1; }
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 20 — SWITCH (coss.com/ui "Switch" — exact sizing)
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* Override tmf-switch track to coss exact dims: 42×24 */
+.tmf-switch .tmf-track {
+  width: 42px;
+  height: 24px;
+}
+.tmf-switch .tmf-track::after {
+  width: 18px;
+  height: 18px;
+  top: 2px;
+  left: 2px;
+}
+.tmf-switch input:checked + .tmf-track::after {
+  transform: translateX(18px);
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 21 — SETTINGS LAYOUT (coss.com/ui settings section pattern)
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.coss-settings-section { display: flex; flex-direction: column; gap: var(--space-lg); }
+
+.coss-settings-group {
+  background: var(--coss-card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+}
+
+.coss-settings-group-header {
+  padding: 0.875rem var(--space-lg);
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-muted);
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.coss-settings-group-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.coss-settings-group-desc {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin-left: auto;
+}
+
+.coss-settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-lg);
+  padding: 0.9375rem var(--space-lg);
+  border-bottom: 1px solid var(--border-light);
+  transition: background var(--transition-fast);
+}
+.coss-settings-row:last-child { border-bottom: none; }
+.coss-settings-row:hover { background: rgba(var(--primary-rgb), 0.02); }
+
+.coss-settings-row-info { flex: 1; min-width: 0; }
+.coss-settings-row-label { font-size: 0.875rem; font-weight: 500; color: var(--text-primary); }
+.coss-settings-row-desc  { font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.125rem; }
+.coss-settings-row-control { flex-shrink: 0; }
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 22 — CALLOUT (left-border callout)
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.coss-callout {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  border-left: 3px solid var(--border);
+  background: var(--surface-muted);
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+.coss-callout-tip     { border-left-color: var(--accent);     background: rgba(var(--accent-rgb),    0.06); }
+.coss-callout-warning { border-left-color: var(--amber);      background: rgba(var(--amber-rgb),     0.06); }
+.coss-callout-error   { border-left-color: var(--rose);       background: rgba(var(--rose-rgb),      0.06); }
+.coss-callout-info    { border-left-color: var(--secondary);  background: rgba(var(--secondary-rgb), 0.06); }
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 23 — PAGINATION (coss.com/ui "Pagination")
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.coss-pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.coss-page-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  padding: 0 0.75rem;
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-decoration: none;
+  line-height: 1;
+}
+
+.coss-page-btn:hover:not(:disabled) {
+  background: var(--surface-muted);
+  color: var(--text-primary);
+}
+
+.coss-page-btn.active {
+  background: var(--primary);
+  color: var(--text-inverse);
+  border-color: var(--primary);
+}
+
+.coss-page-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 24 — TOOLTIP (CSS-only via data-tooltip)
+   ════════════════════════════════════════════════════════════════════════════ */
+
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%) translateY(4px);
+  padding: 0.3125rem 0.625rem;
+  background: var(--primary);
+  color: var(--text-inverse);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+  z-index: 999;
+  box-shadow: var(--shadow-md);
+}
+
+[data-tooltip]:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Tooltip placement variants */
+[data-tooltip-placement="bottom"]::after {
+  bottom: auto;
+  top: calc(100% + 6px);
+  transform: translateX(-50%) translateY(-4px);
+}
+[data-tooltip-placement="bottom"]:hover::after {
+  transform: translateX(-50%) translateY(0);
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 25 — DIALOG / MODAL (coss.com/ui "Dialog")
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.coss-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: cossFadeIn 0.15s ease;
+}
+
+@keyframes cossFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.coss-dialog {
+  background: var(--coss-dialog-bg);
+  backdrop-filter: blur(24px) saturate(1.3);
+  -webkit-backdrop-filter: blur(24px) saturate(1.3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-xl);
+  max-width: 32rem;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  animation: cossDialogIn 0.22s var(--ease-spring) both;
+}
+
+@keyframes cossDialogIn {
+  from { opacity: 0; transform: scale(0.94) translateY(8px); }
+  to   { opacity: 1; transform: scale(1)    translateY(0); }
+}
+
+.coss-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.coss-dialog-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-family: var(--font-display);
+}
+
+.coss-dialog-description {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
+.coss-dialog-body { padding: 1.5rem; }
+
+.coss-dialog-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border-light);
+}
+
+/* Mobile: bottom sheet */
+@media (max-width: 640px) {
+  .coss-dialog-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .coss-dialog {
+    max-width: 100%;
+    border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+    max-height: 90vh;
+    animation: cossSheetIn 0.28s var(--ease-spring) both;
+  }
+  @keyframes cossSheetIn {
+    from { opacity: 0; transform: translateY(40px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  /* Drag handle */
+  .coss-dialog-header::before {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 0.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2.25rem;
+    height: 0.25rem;
+    background: var(--text-tertiary);
+    border-radius: var(--radius-full);
+    opacity: 0.35;
+  }
+  .coss-dialog-header { position: relative; }
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 26 — DROP ZONE (coss.com/ui "Dropzone")
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.coss-dropzone {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-xl);
+  padding: 2.5rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  background: var(--surface-muted);
+  transition: border-color var(--transition-base), background var(--transition-base), transform var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.coss-dropzone:hover,
+.coss-dropzone:focus-within {
+  border-color: rgba(var(--primary-rgb), 0.4);
+  background: rgba(var(--primary-rgb), 0.03);
+}
+
+.coss-dropzone.drag-over {
+  border-color: var(--primary);
+  background: rgba(var(--primary-rgb), 0.06);
+  transform: scale(1.015);
+  box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.1);
+}
+
+.coss-dropzone-icon {
+  font-size: 3rem;
+  color: var(--text-tertiary);
+  line-height: 1;
+}
+
+.coss-dropzone-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.coss-dropzone-sub {
+  font-size: 0.8125rem;
+  color: var(--text-tertiary);
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 27 — COMMAND PALETTE / SEARCH (coss.com/ui "Command")
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.coss-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.coss-search-icon {
+  position: absolute;
+  left: 0.75rem;
+  color: var(--text-tertiary);
+  pointer-events: none;
+  font-size: 1.125rem;
+  display: flex;
+  align-items: center;
+}
+
+.coss-search-input {
+  width: 100%;
+  height: var(--coss-input-h);
+  padding: 0 2.5rem 0 2.5rem;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: var(--text-primary);
+  background: var(--coss-card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.coss-search-input::placeholder { color: var(--text-tertiary); }
+.coss-search-input:focus { border-color: var(--primary); box-shadow: var(--coss-ring); }
+
+.coss-search-clear {
+  position: absolute;
+  right: 0.625rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-fast);
+}
+.coss-search-clear:hover { color: var(--text-primary); }
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 28 — STAT CARD (financial metric card, finance-domain specific)
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* Used in dashboard, portfolio, stats — unifies all "stat card" patterns */
+.coss-stat-card {
+  background: var(--coss-card-bg);
+  border: 1px solid var(--coss-card-border);
+  border-radius: var(--radius-xl);
+  padding: 1.125rem 1.5rem;
+  box-shadow: var(--shadow-xs);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+}
+
+.coss-stat-card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+  border-color: rgba(var(--primary-rgb), 0.18);
+}
+
+.coss-stat-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-tertiary);
+  margin-bottom: 0.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.coss-stat-value {
+  font-size: 1.625rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.coss-stat-sub {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  margin-top: 0.3rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.coss-stat-sub.positive { color: var(--accent); }
+.coss-stat-sub.negative { color: var(--rose); }
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 29 — DATA TABLE CELLS (finance-specific)
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* Type pills */
+.coss-type-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.1875rem 0.625rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.coss-type-expense { background: rgba(var(--rose-rgb),      0.1); color: var(--rose); }
+.coss-type-income  { background: rgba(var(--accent-rgb),    0.1); color: var(--accent); }
+.coss-type-payment { background: rgba(var(--secondary-rgb), 0.12); color: var(--secondary); }
+
+/* Amount cells */
+.coss-amt-positive { color: var(--accent); font-weight: 600; font-variant-numeric: tabular-nums; }
+.coss-amt-negative { color: var(--rose);   font-weight: 600; font-variant-numeric: tabular-nums; }
+.coss-amt-neutral  { color: var(--secondary); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* Sync status dot */
+.coss-sync-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.coss-sync-both   { background: var(--accent);    box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.2); }
+.coss-sync-mongo  { background: #eab308; }
+.coss-sync-notion { background: #3b82f6; }
+.coss-sync-none   { background: var(--rose); }
+.coss-sync-check  { background: var(--text-tertiary); opacity: 0.5; }
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 30 — SIDEBAR REFINEMENTS (coss.com/ui nav pattern)
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* Pill-style active indicator (coss uses a full row highlight + left bar) */
+.sidebar-link.active {
+  background: rgba(var(--primary-rgb), 0.08);
+  color: var(--primary);
+}
+.dark .sidebar-link.active {
+  background: rgba(255,255,255,0.09);
+  color: #fff;
+}
+
+/* Brand text gradient — keep consistent */
+.sidebar-brand-text {
+  background: var(--text-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 31 — EFFECTS & INTERACTIONS (kinetics.css supplement)
+   Spring, glow, blur, and particle effects matching coss.com/ui UX feel
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* Hover glow on primary interactive cards */
+.coss-glow-hover {
+  transition: box-shadow var(--transition-base), transform var(--transition-fast);
+}
+.coss-glow-hover:hover {
+  box-shadow: var(--shadow-glow), var(--shadow-sm);
+  transform: translateY(-1px);
+}
+
+/* Floating element — gentle bob animation */
+.coss-float {
+  animation: cossFloat 4s ease-in-out infinite;
+}
+@keyframes cossFloat {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-6px); }
+}
+
+/* Pulse badge (notification indicator) */
+.coss-pulse {
+  position: relative;
+}
+.coss-pulse::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--rose);
+  border: 2px solid var(--bg-base);
+  animation: cossPulseBeat 1.8s ease-in-out infinite;
+}
+@keyframes cossPulseBeat {
+  0%, 100% { transform: scale(1);    opacity: 1; }
+  50%       { transform: scale(1.35); opacity: 0.7; }
+}
+
+/* Shimmer overlay on loading elements */
+.coss-shimmer-overlay {
+  position: relative;
+  overflow: hidden;
+}
+.coss-shimmer-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,0.08) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: cossShimmer 1.6s ease-in-out infinite;
+}
+
+/* Number counter animation helper */
+.coss-count-up {
+  transition: all 0.4s var(--ease-smooth);
+}
+
+/* Appear on scroll — add .coss-reveal to elements; JS adds .revealed */
+.coss-reveal {
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.5s ease, transform 0.5s var(--ease-smooth);
+}
+.coss-reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stagger children animations */
+.coss-stagger-children > * {
+  opacity: 0;
+  transform: translateY(8px);
+  animation: cossStaggerIn 0.4s var(--ease-smooth) both;
+}
+.coss-stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+.coss-stagger-children > *:nth-child(2) { animation-delay: 0.10s; }
+.coss-stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
+.coss-stagger-children > *:nth-child(4) { animation-delay: 0.20s; }
+.coss-stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
+.coss-stagger-children > *:nth-child(6) { animation-delay: 0.30s; }
+.coss-stagger-children > *:nth-child(n+7) { animation-delay: 0.35s; }
+
+@keyframes cossStaggerIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Interactive press effect — small scale down on click */
+.coss-pressable {
+  transition: transform var(--transition-fast);
+  cursor: pointer;
+}
+.coss-pressable:active { transform: scale(0.97); }
+
+/* Card pop on click */
+.coss-card-pop:active { transform: scale(0.99); }
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 32 — PAGE LAYOUT HELPERS
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* Page header — consistent across all pages */
+.coss-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+  flex-wrap: wrap;
+}
+
+.coss-page-title {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.coss-page-subtitle {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+  line-height: 1.5;
+}
+
+/* Grid utility — KPI cards grid */
+.coss-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-md);
+}
+
+@media (max-width: 640px) {
+  .coss-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-sm);
+  }
+}
+
+@media (max-width: 380px) {
+  .coss-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Section with title + content */
+.coss-section { display: flex; flex-direction: column; gap: var(--space-md); }
+
+.coss-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+}
+
+.coss-section-title {
+  font-size: var(--text-base);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  font-family: var(--font-display);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+/* Divider with text */
+.coss-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  color: var(--text-tertiary);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  margin: var(--space-md) 0;
+}
+.coss-divider::before,
+.coss-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 33 — NOTIFICATION TOAST UPGRADE
+   Replaces the existing .toast-container with coss-ui styling
+   (backward-compatible — .toast classes still work)
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* Override existing toast container positioning */
+.toast-container {
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  top: auto;
+  z-index: 9900;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0.5rem;
+  max-width: 22rem;
+  width: calc(100vw - 2.5rem);
+}
+
+/* Override existing toast styling with coss pattern */
+.toast {
+  backdrop-filter: blur(18px) saturate(1.2) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.2) !important;
+  animation: cossToastIn 0.3s var(--ease-spring) both !important;
+}
+
+@media (max-width: 480px) {
+  .toast-container {
+    bottom: calc(var(--bottom-nav-height, 64px) + 0.75rem);
+    right: 0.75rem;
+    left: 0.75rem;
+    max-width: 100%;
+    width: auto;
+  }
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 34 — CHART CONTAINER (financial chart wrapper)
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.coss-chart-container {
+  position: relative;
+  border-radius: var(--radius-xl);
+  background: var(--coss-card-bg);
+  border: 1px solid var(--border);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-xs);
+}
+
+.coss-chart-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: var(--space-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.coss-chart-area {
+  position: relative;
+  height: 16rem;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .coss-chart-area { height: 12rem; }
+}
+
+/* Legend pill */
+.coss-chart-legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-md);
+}
+
+.coss-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3125rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.coss-legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 35 — ALLOCATION BAR (portfolio-specific component)
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.coss-alloc-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-xs);
+}
+
+.coss-alloc-name {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  text-transform: capitalize;
+  flex-shrink: 0;
+  width: 7rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.coss-alloc-track {
+  flex: 1;
+  height: 0.5rem;
+  border-radius: var(--radius-full);
+  background: var(--bg-sunken);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.coss-alloc-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--primary);
+  transition: width 0.5s var(--ease-smooth);
+}
+
+.coss-alloc-amt {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  flex-shrink: 0;
+  width: 5.5rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 36 — RESPONSIVE UTILITY OVERRIDES
+   ════════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  /* All coss-cards on mobile: slightly less radius */
+  .coss-card, .coss-kpi-card, .coss-stat-card, .coss-settings-group {
+    border-radius: var(--radius-lg);
+  }
+
+  /* Page headers stack */
+  .coss-page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-sm);
+  }
+
+  /* Stat values slightly smaller */
+  .coss-stat-value { font-size: 1.375rem; }
+  .coss-kpi-value  { font-size: 1.375rem; }
+
+  /* Table full-width scroll */
+  .coss-table-wrap { border-radius: var(--radius-lg); }
+
+  /* Dialogs become bottom sheets on mobile */
+  .coss-dialog {
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+
+  /* Settings rows: stack control below label on small screens */
+  .coss-settings-row {
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+  }
+  .coss-settings-row-control { width: 100%; }
+}
+
+@media (max-width: 480px) {
+  .coss-stat-value { font-size: 1.25rem; }
+  .coss-kpi-value  { font-size: 1.25rem; }
+
+  .coss-empty { padding: 2rem 1rem; }
+
+  .coss-kpi-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   SECTION 37 — BRIDGE ALIASES
+   Maps every legacy TMF class name to the correct coss-ui visual style.
+   These rules fire when HTML uses the new coss-* class names that the
+   automated migration script wrote — closing the gap between renamed HTML
+   and the original styles.css definitions.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ── coss-card (was glass-card / glass-card-elevated / glass-card-glow) ── */
+.coss-card {
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--glass-shadow);
+  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+}
+.coss-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: rgba(var(--primary-rgb), 0.18);
+}
+/* keep existing padding if set via inline style */
+.coss-card[style*="padding"] { padding: revert; }
+
+/* ── coss-stat-card (was stat-card — finance metric card with top accent) ── */
+.coss-stat-card {
+  position: relative;
+  overflow: hidden;
+  background: var(--glass-bg-heavy);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
+}
+.coss-stat-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: var(--radius-full) var(--radius-full) 0 0;
+  background: var(--stat-accent, var(--secondary));
+}
+.coss-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ── coss-tab-bar (was tab-bar) ── */
+.coss-tab-bar {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  gap: 0;
+  background: var(--bg-elevated);
+}
+@media (max-width: 768px) {
+  .coss-tab-bar {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    padding: 8px !important;
+    border-bottom: none;
+    gap: 4px;
+    background: var(--bg-sunken);
+    border-radius: var(--radius-full);
+    margin: var(--space-sm);
+  }
+}
+
+/* ── coss-tab-btn (was tab-btn / pill-tab) ── */
+.coss-tab-btn {
+  padding: 0.625rem 1rem;
+  border-radius: var(--radius-full);
+  font-size: 0.8125rem;
+  font-weight: var(--font-medium);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: 1px solid transparent;
+  background: transparent;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+.coss-tab-btn:hover {
+  color: var(--text-primary);
+  border-color: rgba(var(--primary-rgb), 0.12);
+  background: rgba(var(--primary-rgb), 0.04);
+}
+.coss-tab-btn.active {
+  background: var(--bg-surface);
+  color: var(--primary);
+  border-color: rgba(var(--primary-rgb), 0.14);
+  box-shadow: var(--shadow-xs);
+  font-weight: var(--font-semibold);
+}
+@media (max-width: 768px) {
+  .coss-tab-btn { flex-shrink: 0; }
+}
+
+/* ── coss-seg-item (was seg-btn — segmented filter buttons) ── */
+.coss-seg-item {
+  padding: 6px 14px;
+  border: 1px solid var(--border-light);
+  background: var(--bg-elevated);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: var(--font-medium);
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.coss-seg-item:first-child { border-radius: var(--radius-md) 0 0 var(--radius-md); }
+.coss-seg-item:last-child  { border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+.coss-seg-item:not(:first-child) { border-left: none; }
+.coss-seg-item:hover { background: var(--bg-surface); color: var(--text-primary); }
+.coss-seg-item.active {
+  background: var(--primary);
+  color: var(--text-inverse);
+  border-color: var(--primary);
+}
+
+/* ── coss-toggle-item (was mode-btn — pill toggle buttons) ── */
+.coss-toggle-item {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-full);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all var(--duration-fast, 150ms) var(--ease-smooth);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  background: transparent;
+  color: var(--text-secondary);
+}
+.coss-toggle-item:hover { color: var(--text-primary); background: rgba(var(--primary-rgb), 0.06); }
+.coss-toggle-item.active {
+  background: var(--bg-surface);
+  color: var(--primary);
+  font-weight: 600;
+  border: 1px solid rgba(var(--primary-rgb), 0.18);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── coss-table-wrap (was glass-table wrapping div) ── */
+.coss-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-xl);
+}
+/* Tables inside coss-table-wrap inherit glass-table styles */
+.coss-table-wrap table,
+.coss-table-wrap .glass-table,
+.coss-table-wrap .data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: var(--text-sm);
+  text-align: left;
+}
+.coss-table-wrap thead {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface-muted);
+}
+.coss-table-wrap thead th {
+  padding: 0.875rem 1rem;
+  font-weight: var(--font-semibold);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--divider);
+  white-space: nowrap;
+}
+.coss-table-wrap tbody td {
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--border-light);
+  color: var(--text-primary);
+  vertical-align: middle;
+}
+.coss-table-wrap tbody tr {
+  transition: background var(--transition-fast);
+}
+.coss-table-wrap tbody tr:hover {
+  background: rgba(var(--primary-rgb), 0.04);
+}
+.coss-table-wrap tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ── coss-dropzone (was drop-zone) ── */
+.coss-dropzone {
+  border: 2px dashed rgba(var(--primary-rgb), 0.25);
+  border-radius: var(--radius-xl);
+  padding: 2rem;
+  text-align: center;
+  transition: all var(--transition-base);
+  background: var(--surface-muted);
+  cursor: pointer;
+}
+.coss-dropzone:hover {
+  border-color: rgba(var(--primary-rgb), 0.45);
+  background: rgba(var(--primary-rgb), 0.04);
+}
+.coss-dropzone.drag-over,
+.coss-dropzone:focus-within {
+  border-color: var(--primary);
+  background: rgba(var(--primary-rgb), 0.08);
+  box-shadow: 0 0 0 4px rgba(var(--primary-rgb), 0.1);
+  transform: scale(1.01);
+}
+
+/* ── coss-spinner (was loading-spinner) ── */
+.coss-spinner {
+  border: 3px solid rgba(var(--primary-rgb), 0.12);
+  border-radius: 50%;
+  border-top-color: var(--primary);
+  width: 30px;
+  height: 30px;
+  animation: spin 0.8s linear infinite;
+}
+.coss-spinner.sm { width: 18px; height: 18px; border-width: 2px; }
+.coss-spinner.lg { width: 44px; height: 44px; border-width: 4px; }
+
+/* ── coss-input (was input-glass / input) ── */
+.coss-input {
+  width: 100%;
+  min-height: 2.375rem;
+  padding: 0.5rem 0.875rem;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  background: var(--surface-solid);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.06);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  outline: none;
+  font-family: inherit;
+}
+.dark .coss-input {
+  background: linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.02));
+  backdrop-filter: blur(12px) saturate(1.2);
+  -webkit-backdrop-filter: blur(12px) saturate(1.2);
+  border-color: rgba(255,255,255,0.12);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.07), inset 0 -1px 3px rgba(0,0,0,0.35);
+}
+.coss-input:hover { border-color: rgba(var(--primary-rgb), 0.35); }
+.coss-input:focus {
+  border-color: var(--primary);
+  background: var(--surface-solid);
+  box-shadow: 0 0 0 3px rgba(var(--primary-rgb), 0.18), inset 0 1px 2px rgba(0,0,0,0.08);
+}
+
+/* ── Responsive final overrides ── */
+@media (max-width: 768px) {
+  .coss-stat-card { border-radius: var(--radius-lg); }
+  .coss-tab-bar { padding: 6px; }
+  .coss-seg-item { padding: 5px 10px; font-size: 0.75rem; }
+  .coss-dropzone { padding: 1.25rem; }
+  .coss-table-wrap { border-radius: var(--radius-lg); }
+}

@@ -1,0 +1,900 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   TrackMyFund — Mobile layer (/m)
+
+   Loads LAST, after system.css. Every selector is prefixed .tm- so this file
+   cannot collide with styles.css, coss-ui.css, system.css, themes.css or the
+   Tailwind CDN. Verified: zero `.tm-` matches across all six stylesheets.
+
+   This file defines NO colours. It consumes the tokens already declared in
+   styles.css (:root and .dark) and the scale declared in system.css §1, so
+   light mode, dark mode and all five alternate themes work here for free.
+
+   Shape of the UI: a passbook, not a card grid. Date-grouped rows, hairline
+   rules, amounts hard-right in a fixed numeral column so the eye scans one
+   vertical line. One hero number per screen.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   1 — SHELL METRICS
+   Three fixed bands: app bar, scrolling content, tab bar. Content is the only
+   thing that scrolls, so the bars never jitter against mobile browser chrome.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --tm-bar-h:    3.25rem;   /* 52 — app bar */
+  --tm-tabs-h:   3.5rem;    /* 56 — tab bar */
+  --tm-gutter:   1rem;      /* page side padding */
+  --tm-tap:      2.75rem;   /* 44 — minimum touch target */
+  --tm-tap-lg:   3rem;      /* 48 — primary actions */
+  --tm-safe-t:   env(safe-area-inset-top, 0px);
+  --tm-safe-b:   env(safe-area-inset-bottom, 0px);
+  --tm-rule:     1px solid var(--border-light);
+}
+
+/* dvh tracks the collapsing URL bar; vh does not. Fallback first. */
+.tm-app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--bg-base);
+  /* Horizontal scroll on a phone is always a bug, never a feature. */
+  overflow-x: hidden;
+}
+
+.tm-main {
+  flex: 1 1 auto;
+  padding-bottom: calc(var(--tm-tabs-h) + var(--tm-safe-b) + var(--s-4));
+}
+
+/* Pages without the tab bar (the entry sheet) reclaim the space. */
+.tm-app--bare .tm-main { padding-bottom: calc(var(--tm-safe-b) + var(--s-4)); }
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   2 — APP BAR
+   Holds where-you-are and at most two actions. The title is the month or the
+   screen name — never the product name, which the person already knows.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.tm-bar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  height: calc(var(--tm-bar-h) + var(--tm-safe-t));
+  padding: var(--tm-safe-t) var(--tm-gutter) 0;
+  background: var(--bg-base);
+  border-bottom: 1px solid transparent;
+  transition: border-color var(--m-fast) var(--m-ease);
+}
+
+/* The rule appears only once content has scrolled under the bar, so a short
+   page never shows a line with nothing above it. */
+.tm-bar.tm-bar--stuck { border-bottom-color: var(--border-light); }
+
+.tm-bar-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--t-h2);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tm-bar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: var(--tm-tap);
+  height: var(--tm-tap);
+  margin-right: calc(var(--s-2) * -1);
+  color: var(--text-secondary);
+  background: transparent;
+  border: none;
+  border-radius: var(--r-control);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.tm-bar-btn:active { background: var(--primary-surface); }
+.tm-bar-btn .material-icons-outlined { font-size: 1.375rem; }
+
+/* Month switcher sits in the bar as a borderless control — it is the title. */
+.tm-bar-select {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: 1 1 auto;
+  min-width: 0;
+  height: var(--tm-tap);
+  padding: 0 var(--s-6) 0 0;
+  font-family: inherit;
+  font-size: var(--t-h2);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+.tm-bar-select:focus-visible { outline: 2px solid var(--border-focus); outline-offset: 2px; border-radius: var(--r-control); }
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   3 — TAB BAR
+   Five destinations. The centre one is the action the app exists for, so it
+   is drawn as a filled target rather than another icon-and-label pair.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.tm-tabs {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  align-items: center;
+  height: calc(var(--tm-tabs-h) + var(--tm-safe-b));
+  padding-bottom: var(--tm-safe-b);
+  background: var(--bg-surface);
+  border-top: var(--tm-rule);
+}
+
+.tm-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  height: 100%;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--m-fast) var(--m-ease);
+}
+.tm-tab .material-icons-outlined { font-size: 1.375rem; }
+.tm-tab.is-active { color: var(--text-primary); }
+.tm-tab:active { color: var(--text-primary); }
+
+/* Centre action. Square-ish rather than a circle: a circle reads as a
+   floating afterthought, this reads as part of the bar. */
+.tm-tab--action { gap: 0; }
+.tm-tab--action .tm-tab-fab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--tm-tap-lg);
+  height: var(--tm-tap-lg);
+  color: var(--text-inverse);
+  background: var(--primary);
+  border-radius: var(--r-card);
+  transition: transform var(--m-fast) var(--m-ease);
+}
+.tm-tab--action:active .tm-tab-fab { transform: scale(0.94); }
+.tm-tab--action .tm-tab-fab .material-icons-outlined { font-size: 1.5rem; }
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   4 — HERO: the one number that answers "how am I doing"
+   A single figure with the in/out split as one proportional bar beneath it.
+   Not four tiles of equal weight, which would leave nothing as the answer.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.tm-hero { padding: var(--s-5) var(--tm-gutter) var(--s-6); }
+
+.tm-hero-value {
+  font-family: var(--font-display);
+  font-size: 2.75rem;
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  color: var(--text-primary);
+}
+.tm-hero-value.is-neg { color: var(--rose); }
+.tm-hero-value.is-pos { color: var(--accent); }
+
+.tm-hero-label {
+  margin-top: var(--s-1);
+  font-size: var(--t-label);
+  color: var(--text-tertiary);
+}
+
+/* One bar, two segments. Money in sits left, money out right, widths in
+   proportion — so the gap between them IS the net, read at a glance. */
+.tm-flow {
+  display: flex;
+  height: 0.375rem;
+  margin-top: var(--s-5);
+  overflow: hidden;
+  background: var(--bg-sunken);
+  border-radius: var(--r-pill);
+}
+.tm-flow-in  { background: var(--accent); }
+.tm-flow-out { background: var(--rose); }
+.tm-flow > span { transition: flex-basis var(--m-slow) var(--m-ease); }
+
+.tm-flow-legend {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-top: var(--s-2);
+  font-size: var(--t-label);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+.tm-flow-legend b { font-weight: 600; color: var(--text-primary); }
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   5 — CALLOUT: the only thing on screen asking you to act
+   Orange is reserved for this and nothing else — pending splits, failed sync,
+   queued-offline rows. Never decoration.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.tm-callout {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: calc(100% - var(--tm-gutter) * 2);
+  margin: 0 var(--tm-gutter) var(--s-5);
+  padding: var(--s-3) var(--s-4);
+  font-family: inherit;
+  text-align: left;
+  color: var(--text-primary);
+  background: rgba(var(--secondary-rgb), 0.08);
+  border: 1px solid rgba(var(--secondary-rgb), 0.22);
+  border-radius: var(--r-card);
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.tm-callout:active { background: rgba(var(--secondary-rgb), 0.14); }
+
+.tm-callout-dot {
+  flex: 0 0 auto;
+  width: 0.5rem;
+  height: 0.5rem;
+  background: var(--secondary);
+  border-radius: var(--r-pill);
+}
+.tm-callout-text { flex: 1 1 auto; min-width: 0; font-size: var(--t-body); }
+.tm-callout-text small {
+  display: block;
+  margin-top: 0.0625rem;
+  font-size: var(--t-label);
+  color: var(--text-secondary);
+}
+.tm-callout .material-icons-outlined { flex: 0 0 auto; font-size: 1.125rem; color: var(--text-tertiary); }
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   6 — LEDGER
+   A passbook: rows grouped under a date, divided by hairlines, amounts in a
+   fixed right-hand numeral column. No per-row card, no per-row shadow.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.tm-group-label {
+  position: sticky;
+  top: calc(var(--tm-bar-h) + var(--tm-safe-t));
+  z-index: 10;
+  padding: var(--s-4) var(--tm-gutter) var(--s-2);
+  font-size: var(--t-label);
+  font-weight: 500;
+  color: var(--text-tertiary);
+  background: var(--bg-base);
+}
+
+.tm-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--bg-surface);
+  border-top: var(--tm-rule);
+  border-bottom: var(--tm-rule);
+}
+
+/* Rows below the fold skip layout and paint entirely. A 300-transaction month
+   stays instant. contain-intrinsic-size stops the scrollbar from jumping. */
+.tm-row-host {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 3.75rem;
+}
+
+.tm-row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  min-height: 3.75rem;
+  padding: var(--s-3) var(--tm-gutter);
+  font-family: inherit;
+  text-align: left;
+  background: var(--bg-surface);
+  border: none;
+  border-top: var(--tm-rule);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.tm-rows > li:first-child .tm-row { border-top: none; }
+.tm-row:active { background: var(--bg-sunken); }
+
+.tm-row-body { flex: 1 1 auto; min-width: 0; }
+
+.tm-row-name {
+  font-size: var(--t-body);
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tm-row-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-top: 0.125rem;
+  font-size: var(--t-label);
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The numeral column. Fixed-width and tabular so every amount on the screen
+   lines up on one vertical edge. */
+.tm-row-amt {
+  flex: 0 0 auto;
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  text-align: right;
+  white-space: nowrap;
+  color: var(--text-primary);
+}
+.tm-row-amt.is-in   { color: var(--accent); }
+.tm-row-amt.is-out  { color: var(--rose); }
+.tm-row-amt.is-move { color: var(--text-secondary); }
+
+/* Sync / queued marker. Orange only when it needs the person. */
+.tm-row-flag {
+  flex: 0 0 auto;
+  width: 0.375rem;
+  height: 0.375rem;
+  border-radius: var(--r-pill);
+  background: var(--text-tertiary);
+}
+.tm-row-flag.is-pending { background: var(--secondary); }
+.tm-row-flag.is-failed  { background: var(--rose); }
+.tm-row-flag.is-synced  { background: transparent; }
+
+
+/* ── Swipe actions ───────────────────────────────────────────────────────
+   Built on scroll-snap over a three-panel track: no touch-event JS, no
+   library, and it scrolls on the compositor so it never drops a frame. */
+.tm-swipe {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 5rem 1fr 5rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.tm-swipe::-webkit-scrollbar { display: none; }
+.tm-swipe > * { scroll-snap-align: center; }
+.tm-swipe > .tm-row { scroll-snap-stop: always; }
+
+.tm-swipe-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.125rem;
+  font-family: inherit;
+  font-size: var(--t-micro);
+  font-weight: 500;
+  /* Literal white, not --text-inverse: these two backgrounds are fixed
+     colours in both themes, so the label must not flip with the theme. */
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+}
+.tm-swipe-action--sync   { background: var(--text-tertiary); }
+.tm-swipe-action--delete { background: var(--rose); }
+.tm-swipe-action .material-icons-outlined { font-size: 1.125rem; }
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   7 — ENTRY SHEET
+   The screen the app exists for. Amount first and autofocused, everything
+   else pre-filled from the last entry. Rises from the bottom: one
+   orchestrated moment, answering the tap that opened it.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.tm-sheet-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.45);
+  animation: tmFade var(--m-base) var(--m-ease);
+}
+
+.tm-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 61;
+  display: flex;
+  flex-direction: column;
+  max-height: 92vh;
+  max-height: 92dvh;
+  background: var(--bg-surface);
+  border-radius: var(--r-overlay) var(--r-overlay) 0 0;
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.3);
+  animation: tmSheetIn var(--m-slow) var(--m-ease);
+}
+.tm-sheet.is-closing { animation: tmSheetOut var(--m-base) var(--m-ease) forwards; }
+
+@keyframes tmFade     { from { opacity: 0; } }
+@keyframes tmSheetIn  { from { transform: translateY(100%); } }
+@keyframes tmSheetOut { to   { transform: translateY(100%); opacity: 0; } }
+
+/* Grab handle: says "this can be dragged away" without a label. */
+.tm-sheet-grip {
+  flex: 0 0 auto;
+  width: 2.25rem;
+  height: 0.25rem;
+  margin: var(--s-3) auto var(--s-1);
+  background: var(--border);
+  border-radius: var(--r-pill);
+}
+
+.tm-sheet-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--tm-gutter) var(--s-3);
+}
+.tm-sheet-title {
+  flex: 1 1 auto;
+  font-size: var(--t-h3);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+/* Scrolling body. overscroll-behavior stops the page behind from moving
+   when the body reaches its end. */
+.tm-sheet-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 var(--tm-gutter) var(--s-5);
+}
+
+/* Commit action pinned to the bottom, above the keyboard and the home bar. */
+.tm-sheet-foot {
+  flex: 0 0 auto;
+  padding: var(--s-3) var(--tm-gutter) calc(var(--s-3) + var(--tm-safe-b));
+  background: var(--bg-surface);
+  border-top: var(--tm-rule);
+}
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   8 — FORM CONTROLS
+   Amount is the hero of the sheet. Category and account are chips rather than
+   selects: 9 categories and 4 accounts fit on screen, and a native picker
+   would cost two extra taps while hiding every option but one.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.tm-field { margin-top: var(--s-5); }
+
+.tm-field-label {
+  display: block;
+  margin-bottom: var(--s-2);
+  font-size: var(--t-label);
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* ── Amount ───────────────────────────────────────────────────────────── */
+.tm-amount {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: var(--s-2);
+  padding: var(--s-5) 0 var(--s-4);
+}
+.tm-amount-sign {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 500;
+  color: var(--text-tertiary);
+}
+.tm-amount-input {
+  width: 100%;
+  max-width: 11ch;
+  padding: 0;
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+  outline: none;
+  /* Spinners are useless next to a numeric keypad and steal width. */
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+.tm-amount-input::-webkit-outer-spin-button,
+.tm-amount-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.tm-amount-input::placeholder { color: var(--border); }
+
+/* ── Text input ───────────────────────────────────────────────────────── */
+.tm-input {
+  display: block;
+  width: 100%;
+  height: var(--tm-tap);
+  padding: 0 var(--s-3);
+  font-family: inherit;
+  /* 16px exactly — iOS zooms the viewport on focus for anything smaller. */
+  font-size: var(--t-read);
+  color: var(--text-primary);
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--r-control);
+  outline: none;
+  transition: border-color var(--m-fast) var(--m-ease);
+}
+.tm-input:focus { border-color: var(--border-focus); }
+.tm-input::placeholder { color: var(--text-tertiary); }
+
+/* ── Chip pickers ─────────────────────────────────────────────────────── */
+.tm-chips { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+
+/* Scrolling variant for filter rows that must not wrap. */
+.tm-chips--scroll {
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  margin: 0 calc(var(--tm-gutter) * -1);
+  padding: 0 var(--tm-gutter);
+}
+.tm-chips--scroll::-webkit-scrollbar { display: none; }
+
+.tm-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  min-height: var(--tm-tap);
+  padding: 0 var(--s-4);
+  font-family: inherit;
+  font-size: var(--t-body);
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--text-secondary);
+  background: var(--bg-base);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color var(--m-fast) var(--m-ease),
+              color var(--m-fast) var(--m-ease),
+              border-color var(--m-fast) var(--m-ease);
+}
+.tm-chip:active { transform: scale(0.97); }
+
+/* A real radio sits behind the label, so selection needs no JS and keyboard
+   and screen-reader semantics come for free. */
+.tm-chip input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+.tm-chip:has(input:checked),
+.tm-chip.is-active {
+  color: var(--text-inverse);
+  background: var(--primary);
+  border-color: var(--primary);
+}
+.tm-chip:has(input:focus-visible) { outline: 2px solid var(--border-focus); outline-offset: 2px; }
+
+/* Segmented type control: three equal columns, filled selection. */
+.tm-segment {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-1);
+  padding: var(--s-1);
+  background: var(--bg-sunken);
+  border-radius: var(--r-control);
+}
+.tm-segment .tm-chip {
+  justify-content: center;
+  min-height: 2.5rem;
+  padding: 0 var(--s-2);
+  background: transparent;
+  border-color: transparent;
+  border-radius: calc(var(--r-control) - 2px);
+}
+
+/* ── Switch row ───────────────────────────────────────────────────────── */
+.tm-switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  min-height: var(--tm-tap-lg);
+  margin-top: var(--s-5);
+  font-size: var(--t-body);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.tm-switch-row input { width: 1.125rem; height: 1.125rem; accent-color: var(--primary); }
+
+/* Conditional blocks revealed by :has() on the controlling input — no JS
+   branching, so the form cannot fall out of sync with its own state. */
+.tm-reveal { display: none; }
+.tm-form:has(#tmSplit:checked)   .tm-reveal--split { display: block; }
+.tm-form:has(#tmType-payment:checked) .tm-reveal--move { display: block; }
+.tm-form:has(#tmType-payment:checked) .tm-hide--move { display: none; }
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   9 — BUTTONS
+   One primary action per screen, full width, 48px. Everything else is quiet.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.tm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  width: 100%;
+  min-height: var(--tm-tap-lg);
+  padding: 0 var(--s-5);
+  font-family: inherit;
+  font-size: var(--t-read);
+  font-weight: 600;
+  color: var(--text-inverse);
+  background: var(--primary);
+  border: 1px solid var(--primary);
+  border-radius: var(--r-control);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform var(--m-fast) var(--m-ease), opacity var(--m-fast) var(--m-ease);
+}
+.tm-btn:active:not(:disabled) { transform: scale(0.985); }
+.tm-btn:disabled { opacity: 0.45; cursor: default; }
+
+.tm-btn--quiet {
+  color: var(--text-secondary);
+  background: transparent;
+  border-color: var(--border);
+}
+.tm-btn--danger { color: var(--rose); background: transparent; border-color: rgba(var(--rose-rgb), 0.4); }
+.tm-btn--auto   { width: auto; }
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   10 — LIST CARDS: accounts, holdings, rates
+   Used where a record genuinely has several facts to show at once. Still one
+   surface with hairline divisions, not a stack of individually shadowed cards.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.tm-panel {
+  margin: 0 0 var(--s-5);
+  background: var(--bg-surface);
+  border-top: var(--tm-rule);
+  border-bottom: var(--tm-rule);
+}
+
+.tm-panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--tm-gutter) var(--s-2);
+}
+.tm-panel-title { font-size: var(--t-h3); font-weight: 600; color: var(--text-primary); }
+.tm-panel-link {
+  font-size: var(--t-label);
+  font-weight: 500;
+  color: var(--text-tertiary);
+  text-decoration: none;
+}
+
+/* Two-up grid for account balances and metal rates. */
+.tm-duo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--border-light);
+}
+.tm-duo > * { padding: var(--s-4) var(--tm-gutter); background: var(--bg-surface); }
+
+.tm-stat-label { font-size: var(--t-label); color: var(--text-tertiary); }
+.tm-stat-value {
+  margin-top: 0.125rem;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+.tm-stat-sub { margin-top: 0.125rem; font-size: var(--t-micro); color: var(--text-tertiary); }
+.tm-stat-sub.is-up   { color: var(--accent); }
+.tm-stat-sub.is-down { color: var(--rose); }
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   11 — STATES
+   An empty screen names what would be here and offers the action that puts it
+   there. An error says what happened and what to do — never just "oops".
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.tm-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-10) var(--s-6);
+  text-align: center;
+}
+.tm-state .material-icons-outlined {
+  font-size: 1.75rem;
+  color: var(--text-tertiary);
+}
+.tm-state-title { font-size: var(--t-body); font-weight: 600; color: var(--text-primary); }
+.tm-state-text  { max-width: 32ch; font-size: var(--t-label); color: var(--text-secondary); }
+.tm-state .tm-btn { width: auto; margin-top: var(--s-2); }
+
+.tm-skeleton {
+  background: linear-gradient(90deg, var(--bg-sunken) 25%, var(--surface-muted) 50%, var(--bg-sunken) 75%);
+  background-size: 200% 100%;
+  border-radius: var(--r-control);
+  animation: tmShimmer 1.4s linear infinite;
+}
+@keyframes tmShimmer { to { background-position: -200% 0; } }
+
+/* Offline / queued banner. Orange, because it is asking for attention. */
+.tm-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--tm-gutter);
+  font-size: var(--t-label);
+  color: var(--text-primary);
+  background: rgba(var(--secondary-rgb), 0.12);
+}
+.tm-banner .material-icons-outlined { font-size: 1rem; color: var(--secondary); }
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   12 — PROGRESSIVE ENHANCEMENT
+   Every rule below is additive. Where the feature is missing the UI is still
+   complete — it just does less. Nothing here is required for the app to work.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Scroll-driven header condense ─────────────────────────────────────────
+   Runs off the main thread, so it holds 60fps while the ledger scrolls.
+   Without support the header simply stays full size. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .tm-hero-value {
+      animation: tmCondense linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 60%;
+    }
+    @keyframes tmCondense {
+      to { font-size: 1.75rem; opacity: 0.9; }
+    }
+  }
+}
+
+/* ── Cross-page morph ──────────────────────────────────────────────────────
+   The month's net figure keeps its identity between /m and /m/ledger, so the
+   number travels instead of being redrawn. Unsupported browsers navigate
+   instantly, which is also fine. */
+@media (prefers-reduced-motion: no-preference) {
+  .tm-hero-value { view-transition-name: tm-net; }
+  .tm-bar-title  { view-transition-name: tm-bar-title; }
+}
+
+::view-transition-old(tm-net),
+::view-transition-new(tm-net) {
+  animation-duration: var(--m-slow);
+}
+
+/* ── Pull-to-refresh affordance ───────────────────────────────────────────
+   overscroll-behavior-y: contain stops the browser's own pull gesture from
+   fighting ours, and stops scroll chaining to the document. */
+.tm-main { overscroll-behavior-y: contain; }
+
+.tm-refresh {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 0;
+  overflow: hidden;
+  color: var(--text-tertiary);
+  transition: height var(--m-base) var(--m-ease);
+}
+.tm-refresh.is-active { height: 2.5rem; }
+.tm-refresh .material-icons-outlined { font-size: 1.125rem; animation: tmSpin 900ms linear infinite; }
+@keyframes tmSpin { to { transform: rotate(360deg); } }
+
+
+/* ════════════════════════════════════════════════════════════════════════════
+   13 — ACCESSIBILITY FLOOR
+   Not announced in the UI, just always true: visible keyboard focus, honoured
+   motion preference, and a target no smaller than 44px.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.tm-app :focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+  border-radius: var(--r-control);
+}
+
+/* Nothing in the app may rely on an animation to be understood, so turning
+   them all off has to leave the UI complete. */
+@media (prefers-reduced-motion: reduce) {
+  .tm-app *,
+  .tm-sheet,
+  .tm-sheet-scrim {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root { --tm-rule: 1px solid var(--text-tertiary); }
+  .tm-chip { border-width: 2px; }
+}
+
+.tm-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* The mobile layer is only ever served to /m pages, but a tablet or a rotated
+   phone can exceed the phone width. Cap the shell and centre it rather than
+   stretching a one-column layout across 1024px. */
+@media (min-width: 40rem) {
+  .tm-app { max-width: 32rem; margin-inline: auto; border-inline: var(--tm-rule); }
+  .tm-tabs { max-width: 32rem; margin-inline: auto; }
+}
+
+
